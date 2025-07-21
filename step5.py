@@ -2,12 +2,13 @@
 import pandas as pd
 from collections import defaultdict
 
-def step5_filikoi_omades(df, num_classes):
+def step5_omadopoihsh_kai_katanomi(df, num_classes):
     df = df.copy()
     df['ΦΙΛΟΙ'] = df['ΦΙΛΙΑ'].fillna('').apply(lambda x: [f.strip() for f in str(x).split(',') if f.strip()])
     df['ΤΜΗΜΑ'] = df['ΤΜΗΜΑ'].fillna('')
+    df['ΠΡΟΤΕΙΝΟΜΕΝΟ_ΤΜΗΜΑ'] = df.get('ΠΡΟΤΕΙΝΟΜΕΝΟ_ΤΜΗΜΑ', '')
 
-    # Βήμα 1: Δημιουργία πλήρως αμοιβαίων ομάδων από μη τοποθετημένους μαθητές
+    # === Βήμα 1: Δημιουργία πλήρως αμοιβαίων ομάδων από μη τοποθετημένους ===
     unplaced_students = df[df['ΤΜΗΜΑ'] == '']
     friendship_graph = defaultdict(set)
 
@@ -37,12 +38,13 @@ def step5_filikoi_omades(df, num_classes):
             if len(group) <= 3:
                 groups.append(group)
 
-    # Κατηγοριοποίηση ΟΜΑΔΩΝ
+    # === Βήμα 2: Κατηγοριοποίηση Ομάδων ===
     categories = defaultdict(list)
     for group in groups:
         members = df[df['ΟΝΟΜΑ'].isin(group)]
         genders = members['ΦΥΛΟ'].unique()
         greek_levels = members['ΓΝΩΣΗ_ΕΛ'].unique()
+
         if len(genders) > 1:
             cat = 'Μικτού Φύλου'
         elif len(greek_levels) == 1:
@@ -51,15 +53,14 @@ def step5_filikoi_omades(df, num_classes):
             else:
                 cat = 'Καλή Γνώση (Κορίτσια)' if greek_levels[0] == 'Ν' else 'Όχι Καλή Γνώση (Κορίτσια)'
         else:
-            cat = 'Μικτής Γνώσης (Ομάδες Αγοριών)' if genders[0] == 'Α' else 'Μικτής Γνώσης (Ομάδες Κοριτσιών)'
+            cat = 'Μικτής Γνώσης (Ομάδες Αγoριών)' if genders[0] == 'Α' else 'Μικτής Γνώσης (Ομάδες Κοριτσιών)'
+
         categories[cat].append(group)
 
-    # Υπολογισμός υπάρχουσας κατανομής ανά κατηγορία
+    # === Βήμα 3: Υπολογισμός υπάρχουσας κατανομής ανά κατηγορία ===
     placed_students = df[df['ΤΜΗΜΑ'] != '']
     placed_counts = {i: defaultdict(int) for i in range(num_classes)}
     for _, row in placed_students.iterrows():
-        group = [row['ΟΝΟΜΑ']]
-        members = df[df['ΟΝΟΜΑ'].isin(group)]
         gender = row['ΦΥΛΟ']
         greek = row['ΓΝΩΣΗ_ΕΛ']
         if greek == 'Ν':
@@ -71,14 +72,12 @@ def step5_filikoi_omades(df, num_classes):
         class_index = int(str(row['ΤΜΗΜΑ']).replace('Α', '')) - 1
         placed_counts[class_index][cat] += 1
 
-    # Τοποθέτηση ομάδων
-    class_assignments = {i: [] for i in range(num_classes)}
+    # === Βήμα 4: Τοποθέτηση Ομάδων με ισοκατανομή ===
     for cat, cat_groups in categories.items():
         for idx, group in enumerate(cat_groups):
             best_class = min(range(num_classes), key=lambda x: placed_counts[x][cat])
             for student in group:
-                df.loc[df['ΟΝΟΜΑ'] == student, 'ΤΜΗΜΑ'] = f'Α{best_class + 1}'
+                df.loc[df['ΟΝΟΜΑ'] == student, 'ΠΡΟΤΕΙΝΟΜΕΝΟ_ΤΜΗΜΑ'] = f'Α{best_class + 1}'
                 placed_counts[best_class][cat] += 1
-                class_assignments[best_class].append(student)
 
-    return df
+    return df, groups, categories
