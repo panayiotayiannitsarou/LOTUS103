@@ -5,7 +5,7 @@ from io import BytesIO
 from step1_senarios import generate_step1_scenarios
 from step2 import step2_katanomi_zoiroi
 from step3 import step3_katanomi_idiaiterotites
-from step4 import step4_katanomi_filia
+from step4 import step4_katanomi_filikes_sxeseis
 from step5 import step5_omadopoihsh_katigories, step5_katanomi_omadon_se_tmimata
 from step6 import step6_ypolipoi_xwris_filies
 from step7 import step7_final_check_and_fix
