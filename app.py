@@ -176,19 +176,7 @@ if st.session_state["final_df"] is not None:
         label="📥 Κατέβασε Στατιστικά Όλων των Σεναρίων",
         data=stats_buffer,
 
-        )
-
-        file_name="statistika_kalyterou_senarion.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
-
-
-    
-
-
-
-
-# 🔄 Κουμπί: Δοκίμασε νέο αρχείο
+     
 st.markdown("---")
 if st.button("🔄 Δοκίμασε νέο αρχείο"):
     reset_session()
