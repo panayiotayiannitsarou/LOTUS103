@@ -56,6 +56,7 @@ if uploaded_file:
         scenario_df = step4_amivaia_filia(scenario_df)
         scenario_df = step5_filikoi_omades(scenario_df, num_classes)
         scenario_df = step6_ypolipoi_xwris_filies(scenario_df, num_classes)
+        scenario_df = enrich_for_step7(scenario_df)
         scenario_df = step7_final_check_and_fix(scenario_df, num_classes)
         all_scenario_dfs.append(scenario_df)
 
