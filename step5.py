@@ -1,8 +1,7 @@
-
 import pandas as pd
 from collections import defaultdict
 
-def step5_omadopoihsh_kai_katanomi(df, num_classes):
+def step5_omadopoihsh_katigories(df):
     df = df.copy()
     df['ΦΙΛΟΙ'] = df['ΦΙΛΙΑ'].fillna('').apply(lambda x: [f.strip() for f in str(x).split(',') if f.strip()])
     df['ΤΜΗΜΑ'] = df['ΤΜΗΜΑ'].fillna('')
@@ -57,6 +56,13 @@ def step5_omadopoihsh_kai_katanomi(df, num_classes):
 
         categories[cat].append(group)
 
+    return categories, groups
+
+def step5_katanomi_omadon_se_tmimata(df, categories, num_classes):
+    df = df.copy()
+    df['ΠΡΟΤΕΙΝΟΜΕΝΟ_ΤΜΗΜΑ'] = df.get('ΠΡΟΤΕΙΝΟΜΕΝΟ_ΤΜΗΜΑ', '')
+    df['ΤΜΗΜΑ'] = df['ΤΜΗΜΑ'].fillna('')
+
     # === Βήμα 3: Υπολογισμός υπάρχουσας κατανομής ανά κατηγορία ===
     placed_students = df[df['ΤΜΗΜΑ'] != '']
     placed_counts = {i: defaultdict(int) for i in range(num_classes)}
@@ -74,10 +80,10 @@ def step5_omadopoihsh_kai_katanomi(df, num_classes):
 
     # === Βήμα 4: Τοποθέτηση Ομάδων με ισοκατανομή ===
     for cat, cat_groups in categories.items():
-        for idx, group in enumerate(cat_groups):
+        for group in cat_groups:
             best_class = min(range(num_classes), key=lambda x: placed_counts[x][cat])
             for student in group:
                 df.loc[df['ΟΝΟΜΑ'] == student, 'ΠΡΟΤΕΙΝΟΜΕΝΟ_ΤΜΗΜΑ'] = f'Α{best_class + 1}'
                 placed_counts[best_class][cat] += 1
 
-    return df, groups, categories
+    return df
