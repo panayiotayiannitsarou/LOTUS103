@@ -45,7 +45,10 @@ def generate_step1_scenarios(df, num_classes):
     all_valid_scenarios = []
 
     # Υποψήφιες κατανομές (όλες οι πιθανές σειρές ανάθεσης)
-    for perm in permutations(range(num_classes) * ((len(names) + num_classes - 1) // num_classes), len(names)):
+num_repeats = (len(names) + num_classes - 1) // num_classes
+choices = list(range(num_classes)) * num_repeats
+
+for perm in permutations(choices, len(names)):
         if max(Counter(perm).values()) - min(Counter(perm).values()) > 1:
             continue  # αποφυγή ανισοκατανομής >1
 
