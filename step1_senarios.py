@@ -1,58 +1,92 @@
-
 import pandas as pd
-from itertools import permutations
-from collections import Counter
+import itertools
+import copy
+from collections import defaultdict
 
-def check_conflicts(df, class_col):
-    conflicts = []
+def fully_mutual_friends(df):
+    """
+    Επιστρέφει ένα λεξικό όπου για κάθε παιδί εμφανίζονται οι πλήρως αμοιβαίοι φίλοι του.
+    """
+    mutual = defaultdict(list)
+    names = df["ΟΝΟΜΑ"].tolist()
+    friends_dict = dict(zip(df["ΟΝΟΜΑ"], df["ΦΙΛΟΙ"]))
+    for name in names:
+        declared_friends = [f.strip() for f in str(friends_dict.get(name, "")).split(",") if f.strip() in names]
+        for friend in declared_friends:
+            friends_of_friend = [f.strip() for f in str(friends_dict.get(friend, "")).split(",") if f.strip() in names]
+            if name in friends_of_friend:
+                mutual[name].append(friend)
+    return dict(mutual)
 
-    teacher_children = df[df["ΠΑΙΔΙ_ΕΚΠΑΙΔΕΥΤΙΚΟΥ"] == "Ν"]
-    grouped = teacher_children.groupby(class_col)
+def check_conflicts(pair, df):
+    """
+    Επιστρέφει True αν υπάρχει εξωτερική ή παιδαγωγική σύγκρουση στο ζεύγος
+    """
+    df = df.set_index("ΟΝΟΜΑ")
+    p1, p2 = pair
 
-    for _, group in grouped:
-        names = group["ΟΝΟΜΑ"].tolist()
-        traits = group[["ΟΝΟΜΑ", "ΖΩΗΡΟΣ", "ΙΔΙΑΙΤΕΡΟΤΗΤΑ"]].set_index("ΟΝΟΜΑ").to_dict("index")
+    # Εξωτερική σύγκρουση
+    conflict_1 = str(df.loc[p1, "ΣΥΓΚΡΟΥΣΗ"]).split(',') if pd.notna(df.loc[p1, "ΣΥΓΚΡΟΥΣΗ"]) else []
+    conflict_2 = str(df.loc[p2, "ΣΥΓΚΡΟΥΣΗ"]).split(',') if pd.notna(df.loc[p2, "ΣΥΓΚΡΟΥΣΗ"]) else []
+    if p2 in [c.strip() for c in conflict_1] or p1 in [c.strip() for c in conflict_2]:
+        return True
 
-        for i in range(len(names)):
-            for j in range(i+1, len(names)):
-                n1, n2 = names[i], names[j]
-                trait1, trait2 = traits[n1], traits[n2]
+    # Παιδαγωγική σύγκρουση
+    def is_zoiros(x): return str(df.loc[x, "ΖΩΗΡΟΣ"]).strip().upper() == 'Ν'
+    def is_idiaterotita(x): return str(df.loc[x, "ΙΔΙΑΙΤΕΡΟΤΗΤΑ"]).strip().upper() == 'Ν'
 
-                cond1 = trait1["ΖΩΗΡΟΣ"] == "Ν" and trait2["ΖΩΗΡΟΣ"] == "Ν"
-                cond2 = trait1["ΙΔΙΑΙΤΕΡΟΤΗΤΑ"] == "Ν" and trait2["ΙΔΙΑΙΤΕΡΟΤΗΤΑ"] == "Ν"
-                cond3 = (trait1["ΖΩΗΡΟΣ"] == "Ν" and trait2["ΙΔΙΑΙΤΕΡΟΤΗΤΑ"] == "Ν") or                         (trait2["ΖΩΗΡΟΣ"] == "Ν" and trait1["ΙΔΙΑΙΤΕΡΟΤΗΤΑ"] == "Ν")
+    if (is_zoiros(p1) and is_zoiros(p2)) or (is_idiaterotita(p1) and is_idiaterotita(p2)) or \
+       (is_zoiros(p1) and is_idiaterotita(p2)) or (is_zoiros(p2) and is_idiaterotita(p1)):
+        return True
 
-                if cond1 or cond2 or cond3:
-                    conflicts.append((n1, n2, "Παιδαγωγική σύγκρουση"))
+    return False
 
-        for name in names:
-            conflict_with = df.loc[df["ΟΝΟΜΑ"] == name, "ΣΥΓΚΡΟΥΣΗ"].values[0]
-            if pd.notna(conflict_with) and conflict_with in names:
-                conflicts.append((name, conflict_with, "Δηλωμένη εξωτερική σύγκρουση"))
-
-    return conflicts
-
-def generate_step1_scenarios(df, num_classes):
+def step1_teacher_scenarios(df, num_classes):
     df = df.copy()
-    teacher_kids = df[df["ΠΑΙΔΙ_ΕΚΠΑΙΔΕΥΤΙΚΟΥ"] == "Ν"]
-    others = df[df["ΠΑΙΔΙ_ΕΚΠΑΙΔΕΥΤΙΚΟΥ"] != "Ν"]
-    names = teacher_kids["ΟΝΟΜΑ"].tolist()
+    df["ΠΡΟΤΕΙΝΟΜΕΝΟ_ΤΜΗΜΑ"] = ""
 
-    all_valid_scenarios = []
+    teachers_kids = df[df["ΠΑΙΔΙ_ΕΚΠΑΙΔΕΥΤΙΚΟΥ"] == "Ν"]["ΟΝΟΜΑ"].tolist()
+    all_names = df["ΟΝΟΜΑ"].tolist()
 
-    num_repeats = (len(names) + num_classes - 1) // num_classes
-    choices = list(range(num_classes)) * num_repeats
+    if len(teachers_kids) <= num_classes:
+        # Τοποθέτηση ένα παιδί ανά τμήμα χωρίς σενάρια
+        for i, name in enumerate(teachers_kids):
+            df.loc[df["ΟΝΟΜΑ"] == name, "ΠΡΟΤΕΙΝΟΜΕΝΟ_ΤΜΗΜΑ"] = f"Α{i+1}"
+        return [df]
 
-    for perm in permutations(choices, len(names)):
-        if max(Counter(perm).values()) - min(Counter(perm).values()) > 1:
+    mutual = fully_mutual_friends(df)
+
+    # Γεννήτρια για όλα τα σενάρια ισόποσης κατανομής
+    valid_scenarios = []
+    for perm in set(itertools.permutations(range(num_classes) * ((len(teachers_kids) + num_classes - 1) // num_classes), len(teachers_kids))):
+        if max([perm.count(i) for i in range(num_classes)]) - min([perm.count(i) for i in range(num_classes)]) > 1:
             continue
 
-        df_temp = df.copy()
-        mapping = dict(zip(names, perm))
-        df_temp["ΠΡΟΤΕΙΝΟΜΕΝΟ_ΤΜΗΜΑ"] = df_temp["ΟΝΟΜΑ"].map(mapping)
+        temp_df = df.copy()
+        scenario = {}
+        used = set()
+        for i, name in enumerate(teachers_kids):
+            class_id = f"Α{perm[i]+1}"
+            scenario[name] = class_id
 
-        conflicts = check_conflicts(df_temp, "ΠΡΟΤΕΙΝΟΜΕΝΟ_ΤΜΗΜΑ")
-        if not conflicts:
-            all_valid_scenarios.append(df_temp)
+        # Έλεγχος για σύγκρουση
+        pairs = list(itertools.combinations(scenario.items(), 2))
+        skip = False
+        for (n1, c1), (n2, c2) in pairs:
+            if c1 == c2:
+                if check_conflicts((n1, n2), df):
+                    skip = True
+                    break
+        if skip:
+            continue
 
-    return all_valid_scenarios
+        # Αν όλα καλά, καταγραφή σεναρίου
+        for name, class_id in scenario.items():
+            temp_df.loc[temp_df["ΟΝΟΜΑ"] == name, "ΠΡΟΤΕΙΝΟΜΕΝΟ_ΤΜΗΜΑ"] = class_id
+
+        # Κρατάμε μόνο μοναδικά σενάρια (κανονικοποίηση κατά περιεχόμενο τμημάτων)
+        class_sets = tuple(sorted([tuple(sorted(temp_df[temp_df["ΠΡΟΤΕΙΝΟΜΕΝΟ_ΤΜΗΜΑ"] == f"Α{i+1}"]["ΟΝΟΜΑ"].tolist())) for i in range(num_classes)]))
+        if class_sets not in [tuple(sorted([tuple(sorted(v[v["ΠΡΟΤΕΙΝΟΜΕΝΟ_ΤΜΗΜΑ"] == f"Α{i+1}"]["ΟΝΟΜΑ"].tolist())) for i in range(num_classes)])) for v in valid_scenarios]:
+            valid_scenarios.append(temp_df)
+
+    return valid_scenarios
