@@ -147,12 +147,13 @@ if uploaded_file:
     if not processed_scenarios:
         st.error("⛔ Κανένα σενάριο δεν ικανοποίησε τους περιορισμούς κατανομής.")
         st.stop()
+st.session_state["scenario_dfs"] = [s[0] for s in processed_scenarios]
+st.session_state["scenario_scores"] = [s[1] for s in processed_scenarios]
+st.session_state["final_df"] = processed_scenarios[best_index][0]
+st.session_state["all_stats_df"] = pd.DataFrame(all_stats)
 
-    st.session_state["scenario_dfs"] = [s[0] for s in processed_scenarios]
-    st.session_state["scenario_scores"] = [s[1] for s in processed_scenarios]
-    st.session_state["final_df"] = processed_scenarios[best_index][0]
-    st.session_state["all_stats_df"] = pd.DataFrame(all_stats)
-  if st.session_state["final_df"] is not None:
+if st.session_state["final_df"] is not None:
+
     df = st.session_state["final_df"]
     index = st.session_state["best_index"]
     st.success(f"📌 Το πρόγραμμα επέλεξε αυτόματα το **Σενάριο {index + 1}** ως το καλύτερο.")
