@@ -42,6 +42,7 @@ uploaded_file = st.file_uploader("⬆️ Μεταφόρτωση Excel με ΟΛ�
 if uploaded_file:
     reset_session()
     df = pd.read_excel(uploaded_file)
+    df.columns = [col.strip().upper().replace(" ", "_") for col in df.columns]
     num_classes = math.ceil(len(df) / 25)
     st.info(f"📌 Υπολογίστηκαν αυτόματα **{num_classes} τμήματα** (μέγιστο 25 μαθητές ανά τμήμα)")
 
