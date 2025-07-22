@@ -163,8 +163,7 @@ if st.session_state["final_df"] is not None:
     excel_all = convert_multiple_dfs_to_excel(st.session_state["scenario_dfs"])
     st.download_button("📥 Κατέβασε Excel με όλα τα Σενάρια", data=excel_all, file_name="ola_ta_senaria.xlsx")
 
-    if "all_stats_df" in st.session_state and st.session_state["all_stats_df"] is not None:
-    if "all_stats_df" in st.session_state and st.session_state["all_stats_df"] is not None:
+  if "all_stats_df" in st.session_state and st.session_state["all_stats_df"] is not None:
     st.subheader("📊 Σύγκριση Στατιστικών για όλα τα Σενάρια")
     st.dataframe(st.session_state["all_stats_df"])
 
@@ -180,6 +179,7 @@ if st.session_state["final_df"] is not None:
         file_name="statistika_kalyterou_senarion.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
+
 
     
 
