@@ -163,19 +163,34 @@ if st.session_state["final_df"] is not None:
     excel_all = convert_multiple_dfs_to_excel(st.session_state["scenario_dfs"])
     st.download_button("📥 Κατέβασε Excel με όλα τα Σενάρια", data=excel_all, file_name="ola_ta_senaria.xlsx")
 
-  if "all_stats_df" in st.session_state and st.session_state["all_stats_df"] is not None:
-    st.subheader("📊 Σύγκριση Στατιστικών για όλα τα Σενάρια")
-    st.dataframe(st.session_state["all_stats_df"])
+  if st.session_state["final_df"] is not None:
 
-    stats_df = st.session_state["all_stats_df"]
-    stats_buffer = BytesIO()
-    with pd.ExcelWriter(stats_buffer, engine="xlsxwriter") as writer:
-        stats_df.to_excel(writer, index=False, sheet_name="Στατιστικά")
-    stats_buffer.seek(0)
+    df = st.session_state["final_df"]
+    index = st.session_state["best_index"]
+    st.success(f"🔷 Το πρόγραμμα επέλεξε αυτόματα το **Σενάριο {index + 1}** ως το καλύτερο.")
+    st.subheader("🔍 Προεπισκόπηση Κατανομής")
+    st.dataframe(df)
 
-    st.download_button(
-        label="📊 Κατέβασε Στατιστικά Όλων των Σεναρίων",
-        data=stats_buffer,
+    excel_all = convert_multiple_dfs_to_excel(st.session_state["scenario_dfs"])
+    st.download_button("📥 Κατέβασε Excel με όλα τα Σενάρια", data=excel_all, file_name="ola_ta_senaria.xlsx")
+
+    if "all_stats_df" in st.session_state and st.session_state["all_stats_df"] is not None:
+        st.subheader("📊 Σύγκριση Στατιστικών για όλα τα Σενάρια")
+        st.dataframe(st.session_state["all_stats_df"])
+
+        stats_df = st.session_state["all_stats_df"]
+        stats_buffer = BytesIO()
+        with pd.ExcelWriter(stats_buffer, engine="xlsxwriter") as writer:
+            stats_df.to_excel(writer, index=False, sheet_name="Στατιστικά")
+        stats_buffer.seek(0)
+
+        st.download_button(
+            label="📊 Κατέβασε Στατιστικά Όλων των Σεναρίων",
+            data=stats_buffer,
+            file_name="statistika_kalyterou_senarion.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+
         file_name="statistika_kalyterou_senarion.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
