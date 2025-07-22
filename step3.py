@@ -48,7 +48,10 @@ def step3_katanomi_idiaiterotites(df: pd.DataFrame, num_classes: int) -> pd.Data
             class_str = str(class_num)
             conflict = False
 
-            classmates = df[df['ΤΜΗΜΑ'] == class_str]
+          classmates_ids = classmates['ΟΝΟΜΑ'].tolist()
+...
+df.loc[df['ΟΝΟΜΑ'] == row['ΟΝΟΜΑ'], ...] = ...
+
             classmates_ids = classmates['ΟΝΟΜΑΤΕΠΩΝΥΜΟ'].tolist()
 
             # Έλεγχος εξωτερικής σύγκρουσης
