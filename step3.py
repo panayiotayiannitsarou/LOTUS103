@@ -48,11 +48,8 @@ def step3_katanomi_idiaiterotites(df: pd.DataFrame, num_classes: int) -> pd.Data
             class_str = str(class_num)
             conflict = False
 
-          classmates_ids = classmates['ΟΝΟΜΑ'].tolist()
-...
-df.loc[df['ΟΝΟΜΑ'] == row['ΟΝΟΜΑ'], ...] = ...
-
-            classmates_ids = classmates['ΟΝΟΜΑΤΕΠΩΝΥΜΟ'].tolist()
+            classmates = df[df['ΤΜΗΜΑ'] == class_str]
+            classmates_ids = classmates['ΟΝΟΜΑ'].tolist()
 
             # Έλεγχος εξωτερικής σύγκρουσης
             if any(conflict_name.strip() in classmates_ids for conflict_name in str(row.get("ΣΥΓΚΡΟΥΣΗ", "")).split(",")):
@@ -65,7 +62,7 @@ df.loc[df['ΟΝΟΜΑ'] == row['ΟΝΟΜΑ'], ...] = ...
                     break
 
             if not conflict:
-                df.loc[df['ΟΝΟΜΑΤΕΠΩΝΥΜΟ'] == row['ΟΝΟΜΑΤΕΠΩΝΥΜΟ'], 'ΠΡΟΤΕΙΝΟΜΕΝΟ_ΤΜΗΜΑ'] = class_str
+                df.loc[df['ΟΝΟΜΑ'] == row['ΟΝΟΜΑ'], 'ΠΡΟΤΕΙΝΟΜΕΝΟ_ΤΜΗΜΑ'] = class_str
                 current_idiaitera_counts[class_str] = current_idiaitera_counts.get(class_str, 0) + 1
                 break
 
