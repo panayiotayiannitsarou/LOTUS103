@@ -44,7 +44,7 @@ if uploaded_file:
     num_classes = math.ceil(len(df) / 25)
     st.info(f"📌 Υπολογίστηκαν αυτόματα **{num_classes} τμήματα** (μέγιστο 25 μαθητές ανά τμήμα)")
 
-    scenarios = step1_katanomi_paidia_ekpaideutikon_senarios(df.copy(), num_classes)
+   scenarios = generate_step1_scenarios(df.copy(), num_classes)
 
     all_scenario_dfs = []
     all_stats = []
