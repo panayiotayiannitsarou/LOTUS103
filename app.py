@@ -10,8 +10,7 @@ from step4 import step4_katanomi_filikes_sxeseis
 from step5 import step5_omadopoihsh_katigories, step5_katanomi_omadon_se_tmimata
 
 
-categories, _ = step5_omadopoihsh_katigories(df)
-df = step5_katanomi_omadon_se_tmimata(df, categories, num_classes)
+
 
 
 
@@ -102,6 +101,7 @@ if uploaded_file:
         df = step2_katanomi_zoiroi(df, num_classes)
         df = step3_katanomi_idiaiterotites(df, num_classes)
         df = step4_katanomi_filia(df)
+    
         categories, _ = step5_omadopoihsh_katigories(df)
         df = step5_katanomi_omadon_se_tmimata(df, categories, num_classes)
         df = step6_ypolipoi_xwris_filies(df, num_classes)
