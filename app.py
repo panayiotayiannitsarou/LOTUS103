@@ -7,7 +7,8 @@ from step1_senarios import generate_step1_scenarios
 from step2 import step2_katanomi_zoiroi
 from step3 import step3_katanomi_idiaiterotites
 from step4 import step4_katanomi_filikes_sxeseis
-from step5 import step5_filikoi_omades
+from step5 import step5_omadopoihsh_katigories, step5_katanomi_omadon_se_tmimata
+
 
 df = step5_filikoi_omades(df, num_classes)
 
