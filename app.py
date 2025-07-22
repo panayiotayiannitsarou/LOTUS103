@@ -4,7 +4,7 @@ import pandas as pd
 import math
 from io import BytesIO
 
-from step1_senarios import step1_katanomi_paidia_ekpaideutikon_senarios
+from step1_senarios import generate_step1_scenarios
 from step2 import step2_zoiri_mathites
 from step3 import step3_idiaiterotites
 from step4 import step4_amivaia_filia
