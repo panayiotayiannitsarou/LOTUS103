@@ -36,26 +36,32 @@ def check_conflicts(df, class_col):
 
     return conflicts
 
+from itertools import permutations
+import pandas as pd
+import math
+
 def generate_step1_scenarios(df, num_classes):
     df = df.copy()
-    teacher_kids = df[df["ΠΑΙΔΙ_ΕΚΠΑΙΔΕΥΤΙΚΟΥ"] == "Ν"]
-    others = df[df["ΠΑΙΔΙ_ΕΚΠΑΙΔΕΥΤΙΚΟΥ"] != "Ν"]
-    names = teacher_kids["ΟΝΟΜΑ"].tolist()
+    names = df[df["ΠΑΙΔΙ_ΕΚΠΑΙΔΕΥΤΙΚΟΥ"] == "Ν"]["ΟΝΟΜΑ"].tolist()
 
-    all_valid_scenarios = []
+    # ✅ Επιστροφή κενής λίστας αν δεν υπάρχουν παιδιά εκπαιδευτικών
+    if len(names) == 0:
+        return []
 
-    # Υποψήφιες κατανομές (όλες οι πιθανές σειρές ανάθεσης)
-    for perm in permutations(range(num_classes) * ((len(names) + num_classes - 1) // num_classes), len(names)):
-        if max(Counter(perm).values()) - min(Counter(perm).values()) > 1:
-            continue  # αποφυγή ανισοκατανομής >1
+    base_df = df.copy()
+    scenarios = []
 
-        df_temp = df.copy()
-        mapping = dict(zip(names, perm))
-        df_temp["ΠΡΟΤΕΙΝΟΜΕΝΟ_ΤΜΗΜΑ"] = df_temp["ΟΝΟΜΑ"].map(mapping)
+    # Δημιουργία όλων των πιθανών κατανομών
+    min_repeats = math.ceil(len(names) / num_classes)
+    class_indices = [i % num_classes for i in range(len(names))]
+    all_perms = set(permutations(class_indices))
 
-        # Έλεγχος για συγκρούσεις
-        conflicts = check_conflicts(df_temp, "ΠΡΟΤΕΙΝΟΜΕΝΟ_ΤΜΗΜΑ")
-        if not conflicts:
-            all_valid_scenarios.append(df_temp)
+    for perm in all_perms:
+        temp_df = base_df.copy()
+        for name, class_index in zip(names, perm):
+            temp_df.loc[temp_df["ΟΝΟΜΑ"] == name, "ΠΡΟΤΕΙΝΟΜΕΝΟ_ΤΜΗΜΑ"] = f"Α{class_index+1}"
+            temp_df.loc[temp_df["ΟΝΟΜΑ"] == name, "ΠΗΓΗ"] = "ΒΗΜΑ 1"
+        scenarios.append(temp_df)
 
-    return all_valid_scenarios
+    return scenarios
+
