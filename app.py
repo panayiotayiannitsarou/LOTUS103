@@ -13,6 +13,7 @@ from step6 import step6_ypolipoi_xwris_filies
 from step7 import step7_final_check_and_fix
 from utils.excel_export import convert_multiple_dfs_to_excel
 from utils.statistics import show_statistics_table, calculate_score_for_all_scenarios
+from utils_step7_helper import enrich_for_step7
 
 def reset_session():
     keys_to_clear = [
