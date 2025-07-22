@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 from collections import defaultdict
 
-def step2_katanomi_zoiroi(df, num_classes):
+def step2_zoiri_mathites(df, num_classes):
     df = df.copy()
     df["ΖΩΗΡΟΣ"] = df["ΖΩΗΡΟΣ"].fillna("")
     df["ΦΥΛΟ"] = df["ΦΥΛΟ"].fillna("")
